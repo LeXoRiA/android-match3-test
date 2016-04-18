@@ -38,8 +38,7 @@ public abstract class Helpers {
      * Initialize the webdriver. Must be called before using any helper methods. *
      */
 
-    public static void init(AndroidDriver webDriver, URL driverServerAddress)
-    {
+    public static void init(AndroidDriver webDriver, URL driverServerAddress) {
         driver = webDriver;
         serverAddress = driverServerAddress;
         int timeoutInSeconds = 300;
@@ -158,35 +157,30 @@ public abstract class Helpers {
     }
 
 
-
     ////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////// EVERYTHING STARTS HERE /////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////
 
 
-    public void log(String msg)
-    {
+    public void log(String msg) {
         Date dNow = new Date();
         SimpleDateFormat tmfr = new SimpleDateFormat("kk:mm:ss");
         System.out.println(tmfr.format(dNow) + " - " + msg);
     }
 
-    public void sleep(int seconds) throws Exception
-    {
+    public void sleep(int seconds) throws Exception {
         Thread.sleep(seconds * 1000);
     }
 
     // Take screenshot of application while it's running.
-    public boolean takeScreenshot(final String name, AndroidDriver _driver2)
-    {
+    public boolean takeScreenshot(final String name, AndroidDriver _driver2) {
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
         File screenshot = ((TakesScreenshot) _driver2).getScreenshotAs(OutputType.FILE);
         return screenshot.renameTo(new File(screenshotDirectory, String.format("/%s.png", name)));
     }
 
     // Save image from URL (AWS S3)
-    public void saveImage (String imageUrl, String destinationFile, AndroidDriver _driver2) throws Exception
-    {
+    public void saveImage(String imageUrl, String destinationFile, AndroidDriver _driver2) throws Exception {
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
 
         URL url = new URL(imageUrl);
@@ -196,8 +190,7 @@ public abstract class Helpers {
         byte[] b = new byte[2048];
         int length;
 
-        while ((length = is.read(b)) != -1)
-        {
+        while ((length = is.read(b)) != -1) {
             os.write(b, 0, length);
         }
 
@@ -208,8 +201,7 @@ public abstract class Helpers {
     }
 
     // Resize image to Canny and match.
-    public String resizeCanny(String imageCanny, String resizedCanny, String resultCanny, int width, int height, int inter) throws Exception
-    {
+    public String resizeCanny(String imageCanny, String resizedCanny, String resultCanny, int width, int height, int inter) throws Exception {
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
 
         String imageCannyStr = screenshotDirectory + imageCanny;
@@ -222,21 +214,18 @@ public abstract class Helpers {
         int wCan = Highgui.imread(imageCannyStr).width();
 
         // Conditions:
-        if (width == 0 && height == 0)
-        {
+        if (width == 0 && height == 0) {
             return imageCannyStr;
         } // end if
-        else if (width == 0)
-        {
+        else if (width == 0) {
             float r = height / (float) hCan;
-            dim[0] = (int)(wCan*r);
+            dim[0] = (int) (wCan * r);
             dim[1] = height;
         } // end else if
-        else
-        {
-            float r = width/(float)wCan;
+        else {
+            float r = width / (float) wCan;
             dim[0] = width;
-            dim[1] = (int)(hCan*r);
+            dim[1] = (int) (hCan * r);
         } // end else
 
         // Some matrix conversions.
@@ -257,9 +246,8 @@ public abstract class Helpers {
 
 
     // Match template and image and then click/swipe.
-    public void Canny (String template, String image, String imageGray, String imageCanny, String resizedCanny, String resultCanny, String matchCase,
-                       String outFile, AndroidDriver _driver2) throws Exception
-    {
+    public void Canny(String template, String image, String imageGray, String imageCanny, String resizedCanny, String resultCanny, String matchCase,
+                      String outFile, AndroidDriver _driver2) throws Exception {
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
         OpenCV.loadShared();
 
@@ -335,8 +323,7 @@ public abstract class Helpers {
             r = gryW / (float) rszW;
 
             // If resized image is smaller than template, then break.
-            if (rszH < tH || rszW < tW)
-            {
+            if (rszH < tH || rszW < tW) {
                 break;
             }
 
@@ -363,8 +350,7 @@ public abstract class Helpers {
             double mVal = mmrValues.maxVal;
 
             // If found array is empty maximum value is bigger than previous max value, then update the variables.
-            if (found == null || mVal > found[0])
-            {
+            if (found == null || mVal > found[0]) {
                 found[0] = mVal;
                 found[1] = mLoc.x;
                 found[2] = mLoc.y;
@@ -375,7 +361,7 @@ public abstract class Helpers {
         // After for loop; update maximum location pointers (x,y) with found array to choose/show.
         mLoc.x = found[1];
         mLoc.y = found[2];
-        r = (float)found[3];
+        r = (float) found[3];
 
         // Found template's edges.
         int startX, startY;
@@ -392,24 +378,15 @@ public abstract class Helpers {
         log("Writing image as " + outFile);
         Highgui.imwrite(outFileStr, imageMat);
 
-        if (matchCase.equalsIgnoreCase("Down"))
-        {
+        if (matchCase.equalsIgnoreCase("Down")) {
             _driver2.swipe(startX, startY, startX, startY + 50, 2000);
-        }
-        else if (matchCase.equalsIgnoreCase("Right"))
-        {
+        } else if (matchCase.equalsIgnoreCase("Right")) {
             _driver2.swipe(startX, startY, startX + 50, startY, 2000);
-        }
-        else if (matchCase.equalsIgnoreCase("Up"))
-        {
+        } else if (matchCase.equalsIgnoreCase("Up")) {
             _driver2.swipe((int) mLoc.x, (int) mLoc.y, (int) mLoc.x, ((int) mLoc.y - 15), 2000);
-        }
-        else if (matchCase.equalsIgnoreCase("Left"))
-        {
+        } else if (matchCase.equalsIgnoreCase("Left")) {
             _driver2.swipe((int) mLoc.x, (int) mLoc.y, ((int) mLoc.x - 15), (int) mLoc.y, 2000);
-        }
-        else
-        {
+        } else {
             _driver2.tap(1, startX, startY, 1000);
         }
 
@@ -421,12 +398,11 @@ public abstract class Helpers {
 
 
     // JSON Collector and FINISHER
-    public void actionStations(String fileName, AndroidDriver _driver2) throws Exception{
+    public void actionStations(String fileName, AndroidDriver _driver2) throws Exception {
 
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
 
-        try
-        {
+        try {
             String jsonFile = screenshotDirectory + "/" + fileName;
             URL link = new URL("https://s3.amazonaws.com/infosfer-ab-test/jsonfiles/" + fileName + ".json");
 
@@ -435,8 +411,7 @@ public abstract class Helpers {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];
             int q = 0;
-            while (-1!=(q=in.read(buf)))
-            {
+            while (-1 != (q = in.read(buf))) {
                 out.write(buf, 0, q);
             }
             out.close();
@@ -464,8 +439,7 @@ public abstract class Helpers {
 
                 String methodType = (String) jObject.get("methodType");
 
-                if (methodType.equals("imageRec"))
-                {
+                if (methodType.equals("imageRec")) {
                     String name = (String) jObject.get("screenshotNameObj");
                     String imageUrl = "http://infosfer-ab-test.s3-website-us-east-1.amazonaws.com/tmpics/" + (String) jObject.get("imageURLObj") + ".png";
                     String destinationFile = screenshotDirectory + "/" + jObject.get("destinationImageObj") + ".png";
@@ -477,7 +451,7 @@ public abstract class Helpers {
                     String resultCanny = "/" + (String) jObject.get("cannyResultObj") + ".png";
                     String matchCase = (String) jObject.get("actionObj");
                     String outFile = "/" + (String) jObject.get("outImageObj") + ".png";
-                    long seconds = (Long)jObject.get("sleepTimeObj");
+                    long seconds = (Long) jObject.get("sleepTimeObj");
                     int second = (int) seconds;
 
                     takeScreenshot(name, _driver2);
@@ -488,10 +462,7 @@ public abstract class Helpers {
                     Canny(template, image, imageGray, imageCanny, resizedCanny, resultCanny, matchCase, outFile, _driver2);
                     sleep(second);
                     n++;
-                }
-
-                else if (methodType.equals("location"))
-                {
+                } else if (methodType.equals("location")) {
 
                     long locStartL = (Long) jObject.get("startPositionObj");
                     int locStart = (int) locStartL;
@@ -499,7 +470,7 @@ public abstract class Helpers {
                     long locEndL = (Long) jObject.get("endPositionObj");
                     int locEnd = (int) locEndL;
 
-                    String resolution = new String ();
+                    String resolution = new String();
 
                     int originH, originW;
                     int startX, startY;
@@ -508,20 +479,20 @@ public abstract class Helpers {
                     originH = _driver2.manage().window().getSize().getHeight();
                     originW = _driver2.manage().window().getSize().getWidth();
 
-                    int origin[] = new int [2];
+                    int origin[] = new int[2];
 
                     origin[0] = originW / 2;
                     origin[1] = originH / 2;
 
                     int tempA, tempB;
-                    int k=20; //px (for CK)
+                    int k = 20; //px (for CK)
                     double m;
 
                     /* Ratio for piece coordinates */
-                    m =  ((float)originH / 2560.f)*4.5;
+                    m = ((float) originH / 2560.f) * 4.5;
 
                     log("m: " + m);
-                    double E = k*m; 
+                    double E = k * m;
 
                     int pointA, pointB;
 
@@ -529,10 +500,9 @@ public abstract class Helpers {
                     int i = -7;
                     int j = -7;
 
-                    for (int a=0; a<64; a++)
-                    {
-                        tempA = (int)(E * j);
-                        tempB = (int)(E * i);
+                    for (int a = 0; a < 64; a++) {
+                        tempA = (int) (E * j);
+                        tempB = (int) (E * i);
 
                         pointA = origin[0] + tempA;
                         pointB = origin[1] + tempB;
@@ -543,12 +513,11 @@ public abstract class Helpers {
                         cellLoc.x = pointA;
                         cellLoc.y = pointB;
 
-                        j = j+2;
+                        j = j + 2;
 
-                        if ((a+1)%8 == 0)
-                        {
-                            i = i+2;
-                            j= -7;
+                        if ((a + 1) % 8 == 0) {
+                            i = i + 2;
+                            j = -7;
                         } //end if
                     } //end for
 
@@ -573,10 +542,8 @@ public abstract class Helpers {
                     n++;
                 }
             }
-        }
-
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+}
