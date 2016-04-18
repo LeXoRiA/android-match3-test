@@ -41,9 +41,9 @@ public abstract class Helpers {
     public static void init(AndroidDriver webDriver, URL driverServerAddress) {
         driver = webDriver;
         serverAddress = driverServerAddress;
-        int timeoutInSeconds = 300;
-        // must wait at least 300 seconds for running on Sauce.
-        // waiting for 150 seconds works locally however it fails on Sauce.
+        int timeoutInSeconds = 60;
+        // must wait at least 60 seconds for running on Sauce.
+        // waiting for 30 seconds works locally however it fails on Sauce.
         driverWait = new WebDriverWait(webDriver, timeoutInSeconds);
     }
 
