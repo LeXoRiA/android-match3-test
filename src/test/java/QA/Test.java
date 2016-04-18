@@ -14,16 +14,6 @@ public class Test extends Helpers
 {
     private AndroidDriver driver;
 
-    public static class CKTest extends Helpers
-    {
-        public CKTest() throws Exception
-        {
-            super();
-            screenshotsFolder = "ck";
-        }
-        private  String sessionId;
-    }
-
     @Before
     public void setUp() throws Exception
     {
@@ -35,7 +25,7 @@ public class Test extends Helpers
     {
         log("Test script started");
         log("Launching application...");
-        sleep(30);
+        sleep(30); // Wait while application is launching
         log("Application is ready!");
 
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("javaior.tmpdir", ""));
