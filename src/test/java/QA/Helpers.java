@@ -1,7 +1,7 @@
 package QA;
 
 /**
- * Created by qa1 on 23.2.2016.
+ * Created by Eligra on 23.2.2016.
  */
 
 import io.appium.java_client.android.AndroidDriver;
@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-//import org.openqa.selenium.interactions.internal.TouchAction;
-
 
 public abstract class Helpers {
     public static AndroidDriver driver;
@@ -44,9 +42,9 @@ public abstract class Helpers {
     {
         driver = webDriver;
         serverAddress = driverServerAddress;
-        int timeoutInSeconds = 60;
-        // must wait at least 60 seconds for running on Sauce.
-        // waiting for 30 seconds works locally however it fails on Sauce.
+        int timeoutInSeconds = 300;
+        // must wait at least 300 seconds for running on Sauce.
+        // waiting for 150 seconds works locally however it fails on Sauce.
         driverWait = new WebDriverWait(webDriver, timeoutInSeconds);
     }
 
@@ -165,7 +163,6 @@ public abstract class Helpers {
     /////////////////////////// EVERYTHING STARTS HERE /////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////
 
-    // C:/Users/qa1/Desktop/ms_test
 
     public void log(String msg)
     {
@@ -187,7 +184,7 @@ public abstract class Helpers {
         return screenshot.renameTo(new File(screenshotDirectory, String.format("/%s.png", name)));
     }
 
-    // Save image from URL (AWS)
+    // Save image from URL (AWS S3)
     public void saveImage (String imageUrl, String destinationFile, AndroidDriver _driver2) throws Exception
     {
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
@@ -414,11 +411,9 @@ public abstract class Helpers {
         else
         {
             _driver2.tap(1, startX, startY, 1000);
-
         }
 
         sleep(2);
-
         log("Action done");
 
         return;
@@ -432,12 +427,10 @@ public abstract class Helpers {
 
         try
         {
-
             String jsonFile = screenshotDirectory + "/" + fileName;
             URL link = new URL("https://s3.amazonaws.com/infosfer-ab-test/jsonfiles/" + fileName + ".json");
 
-
-            //Code to download
+            //Code to download JSON and read it
             InputStream in = new BufferedInputStream(link.openStream());
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];
@@ -464,9 +457,6 @@ public abstract class Helpers {
             JSONObject jsonObject = (JSONObject) obj;
 
             JSONArray functionList = (JSONArray) jsonObject.get("Functions");
-
-//            JSONArray functionList = new JSONArray();
-
 
             int n = 0;
             while (n < functionList.size()) {
@@ -509,7 +499,6 @@ public abstract class Helpers {
                     long locEndL = (Long) jObject.get("endPositionObj");
                     int locEnd = (int) locEndL;
 
-
                     String resolution = new String ();
 
                     int originH, originW;
@@ -519,58 +508,20 @@ public abstract class Helpers {
                     originH = _driver2.manage().window().getSize().getHeight();
                     originW = _driver2.manage().window().getSize().getWidth();
 
-
-
-
-//                    if (originH < 1280 && originW < 720)
-//                    {
-//                        resolution = "SD";
-//                    }
-//
-//                    if ((originH >= 1280 && originH <= 1920) && (originW >= 720 && originW <= 1080))
-//                    {
-//                        resolution = "HD";
-//                    }
-//
-//                    if (originH > 1920 && originW > 1080)
-//                    {
-//                        resolution = "HDR";
-//                    }
-//
-//                    log("Screen type: " + resolution);
-
                     int origin[] = new int [2];
 
                     origin[0] = originW / 2;
                     origin[1] = originH / 2;
 
                     int tempA, tempB;
-
-                    int k=20; //px
+                    int k=20; //px (for CK)
                     double m;
 
+                    /* Ratio for piece coordinates */
                     m =  ((float)originH / 2560.f)*4.5;
 
-
-
-//                    if (resolution.equalsIgnoreCase("SD"))
-//                    {
-//                        m = 1.5;
-//                    }
-//                    else if (resolution.equalsIgnoreCase("HD"))
-//                    {
-//                        m = 3;
-//                    }
-//                    else if (resolution.equalsIgnoreCase("HDR"))
-//                    {
-//                        m = 4.5;
-//                    }
-//                    else {
-//                        return;
-//                    }
-
                     log("m: " + m);
-                    double E = k*m;
+                    double E = k*m; 
 
                     int pointA, pointB;
 
@@ -592,8 +543,6 @@ public abstract class Helpers {
                         cellLoc.x = pointA;
                         cellLoc.y = pointB;
 
-
-
                         j = j+2;
 
                         if ((a+1)%8 == 0)
@@ -601,9 +550,7 @@ public abstract class Helpers {
                             i = i+2;
                             j= -7;
                         } //end if
-
                     } //end for
-
 
                     Point cellStart = ckCells[locStart];
 
@@ -615,29 +562,17 @@ public abstract class Helpers {
                     endX = (int) cellEnd.x;
                     endY = (int) cellEnd.y;
 
-
-//        takeScreenshot("locationTest", _driver2);
-//        String locTest = screenshotDirectory + "/locationTest.png";
-//        Mat locTestMat = Highgui.imread(locTest);
-//        Core.rectangle(locTestMat, new Point(startX, startY), new Point(endX, endY), new Scalar(0, 0, 255));
-//        Highgui.imwrite(locTest, locTestMat);
-
-
                     log("startX: " + startX);
                     log("startY: " + startY);
                     log("endX: " + endX);
                     log("endY: " + endY);
-
-                    System.out.println(ckCells);
 
                     _driver2.swipe(startX, startY, endX, endY, 1000);
                     sleep(10);
 
                     n++;
                 }
-
             }
-
         }
 
         catch (Exception e)
@@ -645,150 +580,3 @@ public abstract class Helpers {
             e.printStackTrace();
         }
     }
-
-
-//    public void locationClassified(int locStart, int locEnd, AndroidDriver _driver2) throws Exception
-//    {
-//
-////        String screenshotDirectory = "C:/Users/qa1/Desktop/ms_test";
-//
-//        String resolution = new String ();
-//
-//        int originH, originW;
-//        int startX, startY;
-//        int endX, endY;
-//
-//        originH = _driver2.manage().window().getSize().getHeight();
-//        originW = _driver2.manage().window().getSize().getWidth();
-//
-//
-//        if (originH < 1280 && originW < 720)
-//        {
-//            resolution = "SD";
-//        }
-//
-//        if ((originH >= 1280 && originH <= 1920) && (originW >= 720 && originW <= 1080))
-//        {
-//            resolution = "HD";
-//        }
-//
-//        if (originH > 1920 && originW > 1080)
-//        {
-//            resolution = "HDR";
-//        }
-//
-//        log("Screen type: " + resolution);
-//
-//        int origin[] = new int [2];
-//
-//        origin[0] = originW / 2;
-//        origin[1] = originH / 2;
-//
-//        int tempA, tempB;
-//
-//        int k=20; //px
-//        double m;
-//
-//        if (resolution.equalsIgnoreCase("SD"))
-//        {
-//            m = 1.5;
-//        }
-//        else if (resolution.equalsIgnoreCase("HD"))
-//        {
-//            m = 3;
-//        }
-//        else if (resolution.equalsIgnoreCase("HDR"))
-//        {
-//            m = 4.5;
-//        }
-//        else {
-//            return;
-//        }
-//
-//        log("m: " + m);
-//        double E = k*m;
-//
-//        int pointA, pointB;
-//
-//        Point[] ckCells = new Point[64];
-//        int i = -7;
-//        int j = -7;
-//
-//        for (int a=0; a<64; a++)
-//        {
-//            tempA = (int)(E * j);
-//            tempB = (int)(E * i);
-//
-//            pointA = origin[0] + tempA;
-//            pointB = origin[1] + tempB;
-//
-//            Point cellLoc = new Point(pointA, pointB);
-//            ckCells[a] = cellLoc;
-//
-//            cellLoc.x = pointA;
-//            cellLoc.y = pointB;
-//
-//
-//
-//            j = j+2;
-//
-//            if ((a+1)%8 == 0)
-//            {
-//                i = i+2;
-//                j= -7;
-//            } //end if
-//
-//        } //end for
-//
-//
-//        Point cellStart = ckCells[locStart];
-//
-//        startX = (int) cellStart.x;
-//        startY = (int) cellStart.y;
-//
-//        Point cellEnd = ckCells[locEnd];
-//
-//        endX = (int) cellEnd.x;
-//        endY = (int) cellEnd.y;
-//
-//
-////        takeScreenshot("locationTest", _driver2);
-////        String locTest = screenshotDirectory + "/locationTest.png";
-////        Mat locTestMat = Highgui.imread(locTest);
-////        Core.rectangle(locTestMat, new Point(startX, startY), new Point(endX, endY), new Scalar(0, 0, 255));
-////        Highgui.imwrite(locTest, locTestMat);
-//
-//
-//        log("startX: " + startX);
-//        log("startY: " + startY);
-//        log("endX: " + endX);
-//        log("endY: " + endY);
-//
-//        System.out.println(ckCells);
-//
-//        _driver2.swipe(startX, startY, endX, endY, 1000);
-//        sleep(10);
-//
-//    }
-
-
-
-//    // FINISHER
-//    public void allinOne (final String name, String imageUrl, String destinationFile,
-//                          String template, String image, String imageGray, String imageCanny,
-//                          String resizedCanny, String resultCanny, String matchCase,
-//                          String outFile, AndroidDriver _driver2, int second) throws Exception
-//    {
-//        takeScreenshot(name, _driver2);
-//        log("Screenshot captured");
-//        saveImage (imageUrl, destinationFile, _driver2);
-//        log("Template has been saved from server");
-//        sleep(1);
-//        Canny(template, image, imageGray, imageCanny, resizedCanny, resultCanny, matchCase, outFile, _driver2);
-//        sleep(second);
-//    }
-} // end Helpers class
-
-
-
-
