@@ -34,6 +34,7 @@ public abstract class Helpers {
     private static WebDriverWait driverWait;
     public static String screenshotsFolder;
 
+
     /**
      * Initialize the webdriver. Must be called before using any helper methods. *
      */
@@ -41,7 +42,7 @@ public abstract class Helpers {
     public static void init(AndroidDriver webDriver, URL driverServerAddress) {
         driver = webDriver;
         serverAddress = driverServerAddress;
-        int timeoutInSeconds = 60;
+        int timeoutInSeconds = 120;
         // must wait at least 60 seconds for running on Sauce.
         // waiting for 30 seconds works locally however it fails on Sauce.
         driverWait = new WebDriverWait(webDriver, timeoutInSeconds);
@@ -251,6 +252,8 @@ public abstract class Helpers {
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
         OpenCV.loadShared();
 
+/*Keep Appium alive*/ _driver2.getOrientation();
+
         String templateStr = screenshotDirectory + template;
         String imageStr = screenshotDirectory + image;
         String imageGrayStr = screenshotDirectory + imageGray;
@@ -304,6 +307,8 @@ public abstract class Helpers {
         // For loop. The mothership of automation.
         for (double scale = linStart; scale >= linEnd; scale = scale - space) {
 
+/*Keep Appium alive*/ _driver2.getOrientation();
+
             // Get H and W of grayed image. And multiply the width with scale for multi-scale.
             int gryW = Highgui.imread(imageGrayStr).width();
             double newWidth = gryW * scale;
@@ -356,7 +361,10 @@ public abstract class Helpers {
                 found[2] = mLoc.y;
                 found[3] = (double) r;
             } // end if
-        } // end for
+        }// end for
+
+
+/*Keep Appium alive*/ _driver2.getOrientation();
 
         // After for loop; update maximum location pointers (x,y) with found array to choose/show.
         mLoc.x = found[1];
@@ -371,27 +379,26 @@ public abstract class Helpers {
         endX = (int) ((mLoc.x + tW) * r);
         endY = (int) ((mLoc.y + tH) * r);
 
-        // Draw rectangle on match.
-        Core.rectangle(imageMat, new Point(startX, startY), new Point(endX, endY), new Scalar(0, 0, 255));
-
-        // Write the matched imaged to show if it's true or not.
-        log("Writing image as " + outFile);
-        Highgui.imwrite(outFileStr, imageMat);
+        log("startX, startY: " + startX + " : " + startY);
+//        // Draw rectangle on match.
+/////////        Core.rectangle(imageMat, new Point(startX, startY), new Point(endX, endY), new Scalar(0, 0, 255));
+//
+//        // Write the matched imaged to show if it's true or not.
+//////////       log("Writing image as " + outFile);
+//////////       Highgui.imwrite(outFileStr, imageMat);
 
         if (matchCase.equalsIgnoreCase("Down")) {
-            _driver2.swipe(startX, startY, startX, startY + 50, 2000);
+            _driver2.swipe(startX, startY, startX, startY + 50, 250);
         } else if (matchCase.equalsIgnoreCase("Right")) {
-            _driver2.swipe(startX, startY, startX + 50, startY, 2000);
+            _driver2.swipe(startX, startY, startX + 50, startY, 250);
         } else if (matchCase.equalsIgnoreCase("Up")) {
-            _driver2.swipe((int) mLoc.x, (int) mLoc.y, (int) mLoc.x, ((int) mLoc.y - 15), 2000);
+            _driver2.swipe((int) mLoc.x, (int) mLoc.y, (int) mLoc.x, ((int) mLoc.y - 15), 250);
         } else if (matchCase.equalsIgnoreCase("Left")) {
-            _driver2.swipe((int) mLoc.x, (int) mLoc.y, ((int) mLoc.x - 15), (int) mLoc.y, 2000);
+            _driver2.swipe((int) mLoc.x, (int) mLoc.y, ((int) mLoc.x - 15), (int) mLoc.y, 250);
         } else {
-            _driver2.tap(1, startX, startY, 1000);
+            _driver2.tap(1, startX, startY, 100);
         }
 
-        sleep(2);
-        log("Action done");
 
         return;
     } // end Canny
@@ -440,6 +447,9 @@ public abstract class Helpers {
                 String methodType = (String) jObject.get("methodType");
 
                 if (methodType.equals("imageRec")) {
+
+                    log("IR action started");
+
                     String name = (String) jObject.get("screenshotNameObj");
                     String imageUrl = "http://infosfer-ab-test.s3-website-us-east-1.amazonaws.com/tmpics/" + (String) jObject.get("imageURLObj") + ".png";
                     String destinationFile = screenshotDirectory + "/" + jObject.get("destinationImageObj") + ".png";
@@ -454,27 +464,36 @@ public abstract class Helpers {
                     long seconds = (Long) jObject.get("sleepTimeObj");
                     int second = (int) seconds;
 
+
                     takeScreenshot(name, _driver2);
                     log("Screenshot captured");
                     saveImage(imageUrl, destinationFile, _driver2);
                     log("Template has been saved from server");
-                    sleep(1);
+//                    sleep(1);
                     Canny(template, image, imageGray, imageCanny, resizedCanny, resultCanny, matchCase, outFile, _driver2);
-                    sleep(second);
                     n++;
-                } else if (methodType.equals("location")) {
+
+                    log("Action done (IR)");
+                    sleep(second);
+                }
+
+                else if (methodType.equals("location")) {
+
+                    log("Loc action started");
 
                     long locStartL = (Long) jObject.get("startPositionObj");
                     int locStart = (int) locStartL;
-
                     long locEndL = (Long) jObject.get("endPositionObj");
                     int locEnd = (int) locEndL;
+
+                    long seconds = (Long) jObject.get("sleepTimeObj");
+                    int second = (int) seconds;
 
                     String resolution = new String();
 
                     int originH, originW;
-                    int startX, startY;
-                    int endX, endY;
+                    int startXL, startYL;
+                    int endXL, endYL;
 
                     originH = _driver2.manage().window().getSize().getHeight();
                     originW = _driver2.manage().window().getSize().getWidth();
@@ -523,23 +542,24 @@ public abstract class Helpers {
 
                     Point cellStart = ckCells[locStart];
 
-                    startX = (int) cellStart.x;
-                    startY = (int) cellStart.y;
+                    startXL = (int) cellStart.x;
+                    startYL = (int) cellStart.y;
 
                     Point cellEnd = ckCells[locEnd];
 
-                    endX = (int) cellEnd.x;
-                    endY = (int) cellEnd.y;
+                    endXL = (int) cellEnd.x;
+                    endYL = (int) cellEnd.y;
 
-                    log("startX: " + startX);
-                    log("startY: " + startY);
-                    log("endX: " + endX);
-                    log("endY: " + endY);
+                    log("startXL: " + startXL);
+                    log("startYL: " + startYL);
+                    log("endXL: " + endXL);
+                    log("endYL: " + endYL);
 
-                    _driver2.swipe(startX, startY, endX, endY, 1000);
-                    sleep(10);
-
+                    _driver2.swipe(startXL, startYL, endXL, endYL, 100);
                     n++;
+
+                    log("Action done (Loc)");
+                    sleep(second);
                 }
             }
         } catch (Exception e) {
