@@ -9,7 +9,10 @@ import nu.pattern.OpenCV;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.opencv.core.*;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 import org.openqa.selenium.By;
@@ -23,11 +26,11 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 
-public abstract class Helpers {
+public abstract class Helpers
+{
     public static AndroidDriver driver;
 
     public static URL serverAddress;
@@ -163,25 +166,29 @@ public abstract class Helpers {
     ////////////////////////////////////////////////////////////////////////////////////
 
 
-    public void log(String msg) {
+    public void log(String msg)
+    {
         Date dNow = new Date();
         SimpleDateFormat tmfr = new SimpleDateFormat("kk:mm:ss");
         System.out.println(tmfr.format(dNow) + " - " + msg);
     }
 
-    public void sleep(int seconds) throws Exception {
+    public void sleep(int seconds) throws Exception
+    {
         Thread.sleep(seconds * 1000);
     }
 
     // Take screenshot of application while it's running.
-    public boolean takeScreenshot(final String name, AndroidDriver _driver2) {
+    public boolean takeScreenshot(final String name, AndroidDriver _driver2)
+    {
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
         File screenshot = ((TakesScreenshot) _driver2).getScreenshotAs(OutputType.FILE);
         return screenshot.renameTo(new File(screenshotDirectory, String.format("/%s.png", name)));
     }
 
     // Save image from URL (AWS S3)
-    public void saveImage(String imageUrl, String destinationFile, AndroidDriver _driver2) throws Exception {
+    public void saveImage(String imageUrl, String destinationFile, AndroidDriver _driver2) throws Exception
+    {
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
 
         URL url = new URL(imageUrl);
@@ -191,10 +198,10 @@ public abstract class Helpers {
         byte[] b = new byte[2048];
         int length;
 
-        while ((length = is.read(b)) != -1) {
+        while ((length = is.read(b)) != -1)
+        {
             os.write(b, 0, length);
         }
-
         is.close();
         os.close();
 
@@ -202,7 +209,8 @@ public abstract class Helpers {
     }
 
     // Resize image to Canny and match.
-    public String resizeCanny(String imageCanny, String resizedCanny, String resultCanny, int width, int height, int inter) throws Exception {
+    public String resizeCanny(String imageCanny, String resizedCanny, String resultCanny, int width, int height, int inter) throws Exception
+    {
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
 
         String imageCannyStr = screenshotDirectory + imageCanny;
@@ -215,15 +223,18 @@ public abstract class Helpers {
         int wCan = Highgui.imread(imageCannyStr).width();
 
         // Conditions:
-        if (width == 0 && height == 0) {
+        if (width == 0 && height == 0)
+        {
             return imageCannyStr;
         } // end if
-        else if (width == 0) {
+        else if (width == 0)
+        {
             float r = height / (float) hCan;
             dim[0] = (int) (wCan * r);
             dim[1] = height;
         } // end else if
-        else {
+        else
+        {
             float r = width / (float) wCan;
             dim[0] = width;
             dim[1] = (int) (hCan * r);
@@ -245,10 +256,10 @@ public abstract class Helpers {
         return resizedCannyStr;
     } // end resizeCanny
 
-
     // Match template and image and then click/swipe.
     public void Canny(String template, String image, String imageGray, String imageCanny, String resizedCanny, String resultCanny, String matchCase,
-                      String outFile, AndroidDriver _driver2) throws Exception {
+                      String outFile, AndroidDriver _driver2) throws Exception
+    {
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
         OpenCV.loadShared();
 
@@ -305,7 +316,8 @@ public abstract class Helpers {
         space = (linStart - linEnd) / counter;
 
         // For loop. The mothership of automation.
-        for (double scale = linStart; scale >= linEnd; scale = scale - space) {
+        for (double scale = linStart; scale >= linEnd; scale = scale - space)
+        {
 
 /*Keep Appium alive*/ _driver2.getOrientation();
 
@@ -328,7 +340,8 @@ public abstract class Helpers {
             r = gryW / (float) rszW;
 
             // If resized image is smaller than template, then break.
-            if (rszH < tH || rszW < tW) {
+            if (rszH < tH || rszW < tW)
+            {
                 break;
             }
 
@@ -355,14 +368,14 @@ public abstract class Helpers {
             double mVal = mmrValues.maxVal;
 
             // If found array is empty maximum value is bigger than previous max value, then update the variables.
-            if (found == null || mVal > found[0]) {
+            if (found == null || mVal > found[0])
+            {
                 found[0] = mVal;
                 found[1] = mLoc.x;
                 found[2] = mLoc.y;
                 found[3] = (double) r;
             } // end if
         }// end for
-
 
 /*Keep Appium alive*/ _driver2.getOrientation();
 
@@ -387,29 +400,36 @@ public abstract class Helpers {
 //////////       log("Writing image as " + outFile);
 //////////       Highgui.imwrite(outFileStr, imageMat);
 
-        if (matchCase.equalsIgnoreCase("Down")) {
+        if (matchCase.equalsIgnoreCase("Down"))
+        {
             _driver2.swipe(startX, startY, startX, startY + 50, 250);
-        } else if (matchCase.equalsIgnoreCase("Right")) {
+        }
+        else if (matchCase.equalsIgnoreCase("Right"))
+        {
             _driver2.swipe(startX, startY, startX + 50, startY, 250);
-        } else if (matchCase.equalsIgnoreCase("Up")) {
+        }
+        else if (matchCase.equalsIgnoreCase("Up"))
+        {
             _driver2.swipe((int) mLoc.x, (int) mLoc.y, (int) mLoc.x, ((int) mLoc.y - 15), 250);
-        } else if (matchCase.equalsIgnoreCase("Left")) {
+        }
+        else if (matchCase.equalsIgnoreCase("Left"))
+        {
             _driver2.swipe((int) mLoc.x, (int) mLoc.y, ((int) mLoc.x - 15), (int) mLoc.y, 250);
-        } else {
+        }
+        else
+        {
             _driver2.tap(1, startX, startY, 100);
         }
-
-
         return;
     } // end Canny
 
-
     // JSON Collector and FINISHER
-    public void actionStations(String fileName, AndroidDriver _driver2) throws Exception {
-
+    public void actionStations(String fileName, AndroidDriver _driver2) throws Exception
+    {
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("java.io.tmpdir", ""));
 
-        try {
+        try
+        {
             String jsonFile = screenshotDirectory + "/" + fileName;
             URL link = new URL("https://s3.amazonaws.com/infosfer-ab-test/jsonfiles/" + fileName + ".json");
 
@@ -418,7 +438,8 @@ public abstract class Helpers {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];
             int q = 0;
-            while (-1 != (q = in.read(buf))) {
+            while (-1 != (q = in.read(buf)))
+            {
                 out.write(buf, 0, q);
             }
             out.close();
@@ -441,13 +462,14 @@ public abstract class Helpers {
             JSONArray functionList = (JSONArray) jsonObject.get("Functions");
 
             int n = 0;
-            while (n < functionList.size()) {
+            while (n < functionList.size())
+            {
                 JSONObject jObject = (JSONObject) functionList.get(n);
 
                 String methodType = (String) jObject.get("methodType");
 
-                if (methodType.equals("imageRec")) {
-
+                if (methodType.equals("imageRec"))
+                {
                     log("IR action started");
 
                     String name = (String) jObject.get("screenshotNameObj");
@@ -464,7 +486,6 @@ public abstract class Helpers {
                     long seconds = (Long) jObject.get("sleepTimeObj");
                     int second = (int) seconds;
 
-
                     takeScreenshot(name, _driver2);
                     log("Screenshot captured");
                     saveImage(imageUrl, destinationFile, _driver2);
@@ -476,8 +497,8 @@ public abstract class Helpers {
                     log("Action done (IR)");
                     sleep(second);
                 }
-
-                else if (methodType.equals("location")) {
+                else if (methodType.equals("location"))
+                {
 
                     log("Loc action started");
 
@@ -519,7 +540,8 @@ public abstract class Helpers {
                     int i = -7;
                     int j = -7;
 
-                    for (int a = 0; a < 64; a++) {
+                    for (int a = 0; a < 64; a++)
+                    {
                         tempA = (int) (E * j);
                         tempB = (int) (E * i);
 
@@ -562,7 +584,9 @@ public abstract class Helpers {
                     sleep(second);
                 }
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             e.printStackTrace();
         }
     }
