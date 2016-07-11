@@ -32,7 +32,7 @@ public class Test extends Helpers
         String screenshotDirectory = System.getProperty("appium.screenshots.dir", System.getProperty("javaior.tmpdir", ""));
 
         /* Flasgship */
-        actionStations("BigTest", driver);
+        actionStations("LongTest", driver);
 
         /* Take screenshot to see the last situation */
         takeScreenshot("last", driver);

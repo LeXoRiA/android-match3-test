@@ -304,6 +304,7 @@ public abstract class Helpers
         /* Some parameters to use in every turn of for loop */
         double[] found = new double[4];
         Point mLoc = null;
+        double mVal = 0;
         float r = 0;
 
         /* Values for linspace and for loop */
@@ -356,13 +357,15 @@ public abstract class Helpers
             String matchResult = resultCannyStr;
             Mat matchResultMat = Highgui.imread(matchResult);
 
+            Mat matchTemplateMat = Highgui.imread(templateStr);
+
             /* Match Canny'd template and Canny'd image */
-            Imgproc.matchTemplate(resultCannyMat, templateMatchMat, matchResultMat, Imgproc.TM_CCOEFF);
+            Imgproc.matchTemplate(resultCannyMat, matchTemplateMat, matchResultMat, Imgproc.TM_CCOEFF_NORMED); // was templateMatchMat
 
             /* Get maximum value and maximum location */
             Core.MinMaxLocResult mmrValues = Core.minMaxLoc(matchResultMat);
             mLoc = mmrValues.maxLoc;
-            double mVal = mmrValues.maxVal;
+            mVal = mmrValues.maxVal;
 
             /* If found array is empty maximum value is bigger than previous max value, then update the variables */
             if (found == null || mVal > found[0])
@@ -371,8 +374,23 @@ public abstract class Helpers
                 found[1] = mLoc.x;
                 found[2] = mLoc.y;
                 found[3] = (double) r;
+
+                System.out.println("maxVal (IF): " + mVal);
+//                System.out.println("minVal (IF): " + minVal);
+            } // end if
+
+            else {
+                System.out.println("maxVal (ELSE): " + mVal);
+//                System.out.println("minVal (ELSE): " + minVal);
             }
         } //end for
+
+        if (found[0] < 0.50 || found[0] > 1.00)
+        {
+            log("Match not found!");
+            log("Ending the test!");
+            _driver2.quit();
+        }
 
         /* Keep Appium alive */
         _driver2.getOrientation();
@@ -395,14 +413,20 @@ public abstract class Helpers
         /*Keep Appium alive*/
         _driver2.getOrientation();
 
-        /*
+
         // Draw rectangle on match.
         Core.rectangle(imageMat, new Point(startX, startY), new Point(endX, endY), new Scalar(0, 0, 255));
 
         // Write the matched imaged to show if it's true or not.
         log("Writing image as " + outFile);
         Highgui.imwrite(outFileStr, imageMat);
-        */
+
+
+        if (startX == 0 && startY == 0){
+            log("Coordinates: 0,0");
+            log("Ending the test!");
+            _driver2.quit();
+        }
 
         /* Make your move */
         if (matchCase.equalsIgnoreCase("Down"))
@@ -483,6 +507,7 @@ public abstract class Helpers
 
                     /* Get necessary variables from JSON */
                     String name = (String) jObject.get("screenshotNameObj");
+                    String imageUrlObj = (String) jObject.get("imageURLObj");
                     String imageUrl = "http://infosfer-ab-test.s3-website-us-east-1.amazonaws.com/tmpics/" + (String) jObject.get("imageURLObj") + ".png";
                     String destinationFile = screenshotDirectory + "/" + jObject.get("destinationImageObj") + ".png";
                     String template = "/" + (String) jObject.get("templateNameObj") + ".png";
@@ -523,6 +548,8 @@ public abstract class Helpers
                     int second = (int) seconds;
 
                     String resolution = new String();
+
+
 
                     int originH, originW;
                     int startXL, startYL;
